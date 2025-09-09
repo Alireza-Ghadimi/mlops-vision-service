@@ -1,1 +1,14 @@
-.pre-comitt-config.yaml
+cat > .gitignore <<'IG'
+.venv/
+__pycache__/
+*.pyc
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+dist/
+build/
+*.egg-info/
+.env
+.DS_Store
+*.log
+
