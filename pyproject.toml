@@ -1,0 +1,61 @@
+[project]
+name = "mlops-vision-service"
+version = "0.1.0"
+description = "ML service skeleton with FastAPI-ready toolchain (src layout)."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "Alireza Ghadimi" }]
+
+# Add or remove runtime deps as needed:
+dependencies = [
+  # "fastapi>=0.115",         # uncomment later when we add FastAPI
+  # "uvicorn[standard]>=0.30" # idem
+]
+
+[project.optional-dependencies]
+dev = [
+  "ruff>=0.5",
+  "black>=24.0",
+  "mypy>=1.10",
+  "pytest>=8.0",
+  "pytest-cov>=5.0",
+  "types-requests",         # example types; add types-<pkg> as needed
+]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-q"
+testpaths = ["tests"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_unreachable = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+no_implicit_optional = true
+check_untyped_defs = true
+mypy_path = ["src"]
+plugins = []
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-select = ["I"]  # import sorting
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+extend-select = ["E", "F", "W", "I"]
+
+[tool.hatch.build.target.wheel]
+package = ["src/mlops_vision_service"]
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
