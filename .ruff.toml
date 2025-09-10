@@ -1,0 +1,6 @@
+line-length = 100
+target-version = "py311"
+src = ['src','tests']
+
+[lint]
+extend-select = ["I"]
