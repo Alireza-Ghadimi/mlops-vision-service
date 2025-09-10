@@ -25,3 +25,13 @@ repos:
       - id: check-yaml
       - id: end-of-file-fixer
       - id: trailing-whitespace
+
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy (local venv)
+        entry: .venv/bin/mypy
+        language: system
+        types: [python]
+        pass_filenames: true
+        args: ["--config-file=pyproject.toml"]
