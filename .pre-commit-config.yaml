@@ -19,9 +19,20 @@ repos:
         additional_dependencies: ["types-requests"]
         args: ["--config-file=pyproject.toml"]
 
+repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
     hooks:
-      - id: check-yaml
       - id: end-of-file-fixer
+        stages: [post-commit]
       - id: trailing-whitespace
+        stages: [post-commit]
+
+  - repo: local
+    hooks:
+      - id: amend-after-autofix
+        name: Amend commit if hooks changed files
+        language: system
+        pass_filenames: false
+        stages: [post-commit]
+        entry: bash -c 'git diff --quiet || (git add -A && git commit --amend --no-edit)'
