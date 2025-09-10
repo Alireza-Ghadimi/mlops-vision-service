@@ -1,0 +1,8 @@
+version: "3.9"
+services:
+  app:
+    build: .
+    image: mlops-vision-service:dev
+    command: mlops-vision-service
+    user: "10001:10001"
+    # volumes: ["./data:/data:rw"]  # add if you need local mounts
