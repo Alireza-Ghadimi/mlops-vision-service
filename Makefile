@@ -29,3 +29,19 @@ test:
 
 clean:
 	rm -rf .venv .pytest_cache .mypy_cache .ruff_cache dist build *.egg-info
+
+build-wheel:
+	. $(VENV)/bin/activate || true
+	python -m pip install -U build
+	pthon -m build --wheel
+	@echo "Wheel(s) in ./dist:"
+	@ls -1 dist/*.whl
+
+docker-build:
+	docker build -t $(IMAGE) .
+
+docker-run:
+	docker run --rm --user 10001:10001 $(IMAGE)
+
+docker-test:
+	docker run --rm --user 10001:10001 $(IMAGE) pytest -q
