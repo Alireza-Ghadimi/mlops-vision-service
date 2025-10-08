@@ -8,8 +8,8 @@ authors = [{ name = "Alireza Ghadimi" }]
 
 # Add or remove runtime deps as needed:
 dependencies = [
-  # "fastapi>=0.115",         # uncomment later when we add FastAPI
-  # "uvicorn[standard]>=0.30" # idem
+  "fastapi>=0.115",         # uncomment later when we add FastAPI
+  "uvicorn[standard]>=0.30" # idem
 ]
 
 [project.optional-dependencies]
