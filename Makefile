@@ -1,14 +1,16 @@
 PYTHON ?= python3.11
 VENV := .venv
-P := $(VENV)/bin/python
+P := $(VENV)/bin/$(PYTHON)
 
 .PHONY: lock install sync lint fix type test clean
-
+remove:
+	rm -rf $(VENV)
 lock:
 	uv lock
 
 install: lock
 	uv venv --python $(PYTHON)
+	$(P) -m ensurepip --upgrade
 	$(P) -m pip install -U pip
 	$(P) -m pip install -e ".[dev]"
 	$(VENV)/bin/pre-commit install
@@ -29,11 +31,10 @@ test:
 
 clean:
 	rm -rf .venv .pytest_cache .mypy_cache .ruff_cache dist build *.egg-info
-
 build-wheel:
 	. $(VENV)/bin/activate || true
-	python -m pip install -U build
-	pthon -m build --wheel
+	$(P) -m pip install -U build
+	$(P) -m build --wheel
 	@echo "Wheel(s) in ./dist:"
 	@ls -1 dist/*.whl
 
@@ -45,3 +46,6 @@ docker-run:
 
 docker-test:
 	docker run --rm --user 10001:10001 $(IMAGE) pytest -q
+
+api-run:
+	$(VENV)/bin/uvicorn mlops_vision_service.api:app --host 0.0.0.0 --port 8000 --reload

@@ -1,2 +1,2 @@
-def test_placeholder() -> bool:
-    return True
+def test_placeholder() -> None:
+    pass

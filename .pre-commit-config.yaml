@@ -16,8 +16,13 @@ repos:
     rev: v1.11.2
     hooks:
       - id: mypy
-        additional_dependencies: ["types-requests"]
         args: ["--config-file=pyproject.toml"]
+        additional_dependencies:
+          - fastapi>=0.115
+          - pydantic>=2.7
+          - starlette>=0.37
+          - typing-extensions>=4.12
+          - types-requests
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
