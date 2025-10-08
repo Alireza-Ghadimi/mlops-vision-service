@@ -37,7 +37,7 @@ jobs:
       - name: Sync deps (locked)
         run: |
           uv venv
-          uv sync --frozen --group dev
+          uv sync --frozen --optional dev
 
       - name: Ruff (lint)
         run: .venv/bin/ruff check .
