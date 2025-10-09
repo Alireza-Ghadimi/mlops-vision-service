@@ -23,9 +23,9 @@ RUN useradd -m -u 10001 appuser
 WORKDIR /app
 
 # Install just the built wheel (no dev deps)
-COPY --from=builder /dist/*.whl /tmp/app.whl
-RUN python -m pip install --no-cache-dir /tmp/app.whl \
- && rm -f /tmp/app.whl
+COPY --from=builder /dist/*.whl /tmp/
+RUN python -m pip install --no-cache-dir /tmp/*.whl \
+ && rm -f /tmp/*.whl
 
 USER appuser
 
@@ -33,4 +33,4 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
 # Default: run our console script (prints a healthy startup message)
-CMD ["mlops-vision-service"]
+CMD ["uvicorn", "mlops_vision_service.api:app", "--host", "0.0.0.0", "--port", "8000"]
