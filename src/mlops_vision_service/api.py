@@ -1,34 +1,36 @@
+# from starlette.datastructures import UploadFile
+# import imageio as io
+import pathlib as Path
+import shutil
 from typing import List, Optional
 
-from fastapi import FastAPI, HTTPException, Request
-from pydantic import BaseModel
-from starlette.datastructures import UploadFile  # use the concrete class
+from fastapi import Body, FastAPI, File, Form, HTTPException, Request, UploadFile
+from pydantic import BaseModel, model_validator
 
-try:
-    # If you set __version__ in __init__.py earlier
-    from . import __version__
-except Exception:  # pragma: no cover
-    __version__ = "0.1.0"
-
-app = FastAPI(title="mlops-vision-service", version=__version__)
+app = FastAPI(title="mlops-vision-servic", version="0.1.0")
 
 
-# ---------- Models (JSON mode) ----------
+# ------- model for Json in/out ----------
 class PredictJSONRequest(BaseModel):
     image_url: Optional[str] = None
     data: Optional[List[float]] = None
+
+    @model_validator(mode="after")
+    def at_least_one_field(self) -> "PredictJSONRequest":
+        if not (self.image_url or (self.data and len(self.data) > 0)):
+            raise ValueError("Provide either 'image_url' or non-empty 'data'.")
+        return self
 
 
 class PredictResponse(BaseModel):
     label: str
     confidence: float
-    mode: str  # "json" or "image"
+    mode: str
 
 
-# ---------- Probes ----------
 @app.get("/healthz")
 async def healthz() -> dict[str, str]:
-    return {"status": "ok", "version": __version__}
+    return {"status": "ok", "version": "0.1.0"}
 
 
 @app.get("/livez")
@@ -38,39 +40,59 @@ async def livez() -> dict[str, str]:
 
 @app.get("/readyz")
 async def readyz() -> dict[str, str]:
-    # Placeholder for "loaded model / ready" checks
     return {"status": "ready"}
 
 
-# ---------- Unified /predict (JSON OR multipart image) ----------
+@app.post("/predict-json", response_model=PredictResponse)
+async def predict_json(payload: PredictJSONRequest = Body(...)) -> PredictResponse:
+    label = "json_ok" if (payload.data or payload.image_url) else "json_empty"
+    return PredictResponse(label=label, confidence=0.42, mode="json")
+
+
 @app.post("/predict", response_model=PredictResponse)
 async def predict(request: Request) -> PredictResponse:
-    """
-    Accepts EITHER:
-      - application/json: PredictJSONRequest
-      - multipart/form-data: field 'image' with a file
-    """
-    ctype = request.headers.get("content-type", "")
+    ctype: str = (request.headers.get("content-type") or "").lower()
+
+    # JSON branch
     if ctype.startswith("application/json"):
         payload = await request.json()
-        try:
-            req = PredictJSONRequest.model_validate(payload)
-        except Exception as e:
-            raise HTTPException(status_code=422, detail=f"Invalid JSON body: {e}")
-        # Dummy logic for demo:
-        label = "json_ok" if (req.data or req.image_url) else "json_empty"
+        req = PredictJSONRequest.model_validate(payload)
+        has_signal = (req.data and len(req.data) > 0) or (req.image_url is not None)
+        label = "json_ok" if has_signal else "json_empty"
         return PredictResponse(label=label, confidence=0.42, mode="json")
 
+    # Multipart branch (file upload)
     if ctype.startswith("multipart/form-data"):
         form = await request.form()
-        file = form.get("image")
-        if not isinstance(file, UploadFile):
+        file_field = form.get("image")  # expect field name: "image"
+        if not isinstance(file_field, UploadFile):
             raise HTTPException(status_code=400, detail="Expected form field 'image' with a file")
-        content = await file.read()
+        content: bytes = await file_field.read()
         label = "image_ok" if content else "image_empty"
         return PredictResponse(label=label, confidence=0.73, mode="image")
 
-    raise HTTPException(
-        status_code=415,
-        detail="Unsupported Media Type. Use application/json or multipart/form-data.",
-    )
+    # Anything else
+    raise HTTPException(status_code=415, detail="Use application/json or multipart/form-data")
+
+
+@app.post("/upload")
+async def upload_image(
+    image: UploadFile = File(...), new_name: str | None = Form(default=None)
+) -> dict[str, str | int]:
+    # allowed = {".jpg", ".jpeg", ".png", ".gif"}
+    # orig_suffix = Path(image.filename or "").suffix.lower()
+    # if orig_suffix not in allowed:
+    #     return {"error": f"unsupported file type: {orig_suffix}"}
+    safe_name = "content.jpg"
+    UPLOAD_DIR = Path.Path("uploads")
+    dest = UPLOAD_DIR / safe_name
+    with dest.open("wb") as f:
+        # copy the file-like stream to disk
+        shutil.copyfileobj(image.file, f)
+    size = dest.stat().st_size
+    return {
+        "saved_as": str(dest),
+        "original_name": image.filename or "",
+        "bytes": size,
+        "content_type": image.content_type or "",
+    }

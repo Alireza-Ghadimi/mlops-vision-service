@@ -13,7 +13,17 @@ install: lock
 	uv venv --python $(PYTHON)
 	$(P) -m ensurepip --upgrade
 	$(P) -m pip install -U pip
+	$(P) -m pip install -e ".[dev]"
 	$(VENV)/bin/pre-commit install
+
+sync:
+	uv venv --python $(PYTHON)
+	uv lock
+	uv sync --frozen --all-groups
+
+py:
+	$(P)
+
 
 lint:
 	$(VENV)/bin/ruff check .
