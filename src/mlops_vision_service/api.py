@@ -8,6 +8,8 @@ import starlette.datastructures as sd
 from fastapi import Body, FastAPI, File, Form, HTTPException, Request, UploadFile
 from pydantic import BaseModel, model_validator
 
+from mlops_vision_service.inference import predict_digit
+
 UploadFile is sd.UploadFile
 
 app = FastAPI(title="mlops-vision-servic", version="0.1.0")
@@ -27,6 +29,7 @@ class PredictJSONRequest(BaseModel):
 
 class PredictResponse(BaseModel):
     label: str
+    result: int | None
     confidence: float
     mode: str
 
@@ -49,7 +52,7 @@ async def readyz() -> dict[str, str]:
 @app.post("/predict-json", response_model=PredictResponse)
 async def predict_json(payload: PredictJSONRequest = Body(...)) -> PredictResponse:
     label = "json_ok" if (payload.data or payload.image_url) else "json_empty"
-    return PredictResponse(label=label, confidence=0.42, mode="json")
+    return PredictResponse(label=label, result=0, confidence=0.42, mode="json")
 
 
 @app.post("/predict", response_model=PredictResponse)
@@ -62,7 +65,7 @@ async def predict(request: Request) -> PredictResponse:
         req = PredictJSONRequest.model_validate(payload)
         has_signal = (req.data and len(req.data) > 0) or (req.image_url is not None)
         label = "json_ok" if has_signal else "json_empty"
-        return PredictResponse(label=label, confidence=0.42, mode="json")
+        return PredictResponse(label=label, result=None, confidence=0.0, mode="json")
 
     # Multipart branch (file upload)
     if ctype.startswith("multipart/form-data"):
@@ -72,14 +75,23 @@ async def predict(request: Request) -> PredictResponse:
         if not (isinstance(file_field, UploadFile) or isinstance(file_field, sd.UploadFile)):
             raise HTTPException(status_code=400, detail="Expected form field 'image' with a file")
 
-        testupload(file_field)
+        # testupload(file_field)
 
         content: bytes = await file_field.read()
+        result = predict_digit(content)
         label = "image_ok" if content else "image_empty"
-        return PredictResponse(label=label, confidence=0.73, mode="image")
+        return PredictResponse(label=label, result=result, confidence=0.73, mode="image")
 
     # Anything else
     raise HTTPException(status_code=415, detail="Use application/json or multipart/form-data")
+
+
+@app.post("/predict_digit", response_model=PredictResponse)
+async def predict_digit_head(image: UploadFile = File(...)) -> PredictResponse:
+    content = await image.read()
+    r = predict_digit(content)
+    label = "image_ok" if content else "image_empty"
+    return PredictResponse(label=label, result=r, confidence=0.73, mode="image")
 
 
 @app.post("/upload")
