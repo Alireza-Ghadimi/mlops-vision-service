@@ -8,9 +8,14 @@ authors = [{ name = "Alireza Ghadimi" }]
 
 # Add or remove runtime deps as needed:
 dependencies = [
-  "fastapi>=0.115",         # uncomment later when we add FastAPI
+  "fastapi>=0.115", # uncomment later when we add FastAPI
   "uvicorn[standard]>=0.30", # idem
-  "python-multipart>=0.0.9"
+  "python-multipart>=0.0.9",
+  "tensorflow>=2.20.0",
+  "keras>=3.11.3",
+  "h5py>=3.15.1",
+  "types-pillow>=10.2.0.20240822",
+  "types-requests>=2.32.4.20250809",
 ]
 
 [project.optional-dependencies]
@@ -46,6 +51,7 @@ check_untyped_defs = true
 mypy_path = ["src"]
 files = ["src"]
 plugins = []
+ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = ["tests.*"]

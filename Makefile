@@ -61,3 +61,8 @@ docker-shell:
 	docker run --rm -it -p 8000:8000 --user 10001:10001 $(IMAGE) sh
 api-run:
 	$(VENV)/bin/uvicorn mlops_vision_service.api:app --host 0.0.0.0 --port 8000 --reload
+check-api-health:
+	curl -X GET http://localhost:8000/healthz | jq .
+test-api-input:
+	curl -X POST http://localhost:8000/predict \
+	-F "image=@temp_c.jpg:type=image/jpeg" | jq .

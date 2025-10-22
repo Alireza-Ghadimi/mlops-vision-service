@@ -2,10 +2,13 @@
 # import imageio as io
 import pathlib as Path
 import shutil
-from typing import List, Optional
+from typing import Any, List, Optional
 
+import starlette.datastructures as sd
 from fastapi import Body, FastAPI, File, Form, HTTPException, Request, UploadFile
 from pydantic import BaseModel, model_validator
+
+UploadFile is sd.UploadFile
 
 app = FastAPI(title="mlops-vision-servic", version="0.1.0")
 
@@ -65,8 +68,12 @@ async def predict(request: Request) -> PredictResponse:
     if ctype.startswith("multipart/form-data"):
         form = await request.form()
         file_field = form.get("image")  # expect field name: "image"
-        if not isinstance(file_field, UploadFile):
+        print(file_field, isinstance(file_field, UploadFile), UploadFile)
+        if not (isinstance(file_field, UploadFile) or isinstance(file_field, sd.UploadFile)):
             raise HTTPException(status_code=400, detail="Expected form field 'image' with a file")
+
+        testupload(file_field)
+
         content: bytes = await file_field.read()
         label = "image_ok" if content else "image_empty"
         return PredictResponse(label=label, confidence=0.73, mode="image")
@@ -96,3 +103,13 @@ async def upload_image(
         "bytes": size,
         "content_type": image.content_type or "",
     }
+
+
+def testupload(image: Any) -> None:
+    safe_name = "content.jpg"
+    UPLOAD_DIR = Path.Path("uploads")
+    dest = UPLOAD_DIR / safe_name
+    with dest.open("wb") as f:
+        # copy the file-like stream to disk
+        shutil.copyfileobj(image.file, f)
+    return
