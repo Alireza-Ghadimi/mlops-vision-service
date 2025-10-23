@@ -53,7 +53,7 @@ docker-build:
 	docker build --no-cache -t $(IMAGE) .
 
 docker-run:
-	docker run --rm --user 10001:10001 $(IMAGE)
+	docker run --rm --user 8000:8000 $(IMAGE)
 
 docker-test:
 	docker run --rm --user 10001:10001 $(IMAGE) pytest -q
@@ -64,5 +64,5 @@ api-run:
 test-api-health:
 	curl -X GET http://localhost:8000/healthz | jq .
 test-api-input:
-	curl -X POST http://localhost:8000/predict \
+	curl -X POST http://localhost:8000/predict_digit \
 	-F "image=@digit2.jpg;type=image/jpeg" | jq .

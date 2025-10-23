@@ -24,6 +24,8 @@ WORKDIR /app
 
 # Install just the built wheel (no dev deps)
 COPY --from=builder /dist/*.whl /tmp/
+COPY src/mlops_vision_service/models/mnist_model.h5 /app/src/mlops_vision_service/models/
+
 RUN python -m pip install --no-cache-dir /tmp/*.whl \
  && rm -f /tmp/*.whl
 
@@ -31,6 +33,9 @@ USER appuser
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
+# Tell humans and tools the default port (optional but nice)
+EXPOSE 7860
+ENV PORT=7860
 
-# Default: run our console script (prints a healthy startup message)
-CMD ["uvicorn", "mlops_vision_service.api:app", "--host", "0.0.0.0", "--port", "8000"]
+# Use a shell so $PORT expands at runtime on Spaces
+CMD ["sh", "-c", "uvicorn mlops_vision_service.api:app --host 0.0.0.0 --port ${PORT:-7860}"]
