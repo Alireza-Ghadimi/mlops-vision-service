@@ -53,10 +53,10 @@ docker-build:
 	docker build --no-cache -t $(IMAGE) .
 
 docker-run:
-	docker run --rm --user 8000:8000 $(IMAGE)
+	docker run -d --name mvs --p 8000:8000 $(IMAGE)
 
 docker-test:
-	docker run --rm --user 10001:10001 $(IMAGE) pytest -q
+	docker run --rm -p 10001:10001 $(IMAGE) pytest -q
 docker-shell:
 	docker run --rm -it -p 8000:8000 --user 10001:10001 $(IMAGE) sh
 api-run:

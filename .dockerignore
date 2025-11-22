@@ -22,3 +22,14 @@ dist/
 
 # Misc
 .DS_Store
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.log
+.venv/
+uv.lock.backup
+.git/
+.gitignore
+.DS_Store

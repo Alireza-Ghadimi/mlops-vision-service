@@ -6,6 +6,7 @@ from typing import Any, List, Optional
 
 import starlette.datastructures as sd
 from fastapi import Body, FastAPI, File, Form, HTTPException, Request, UploadFile
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, model_validator
 
 from mlops_vision_service.inference import predict_digit
@@ -13,6 +14,9 @@ from mlops_vision_service.inference import predict_digit
 UploadFile is sd.UploadFile
 
 app = FastAPI(title="mlops-vision-servic", version="0.1.0")
+PREDICT_PAGE = (Path.Path(__file__).resolve().parent / "predict_digit.html").read_text(
+    encoding="utf-8"
+)
 
 
 # ------- model for Json in/out ----------
@@ -84,6 +88,11 @@ async def predict(request: Request) -> PredictResponse:
 
     # Anything else
     raise HTTPException(status_code=415, detail="Use application/json or multipart/form-data")
+
+
+@app.get("/predict_digit", response_class=HTMLResponse)
+async def predict_digit_form() -> str:
+    return PREDICT_PAGE
 
 
 @app.post("/predict_digit", response_model=PredictResponse)

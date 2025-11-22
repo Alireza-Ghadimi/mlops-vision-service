@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Digit Classifier</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+      :root { --bg:#0f172a; --card:#111827; --accent:#22d3ee; --text:#e2e8f0; --muted:#94a3b8; }
+      *{ box-sizing:border-box; }
+      body{ margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; background:radial-gradient(circle at 20% 20%, #1e293b 0, #0f172a 40%), var(--bg); color:var(--text); font-family:'Space Grotesk', system-ui, -apple-system, sans-serif; }
+      .card{ width: min(420px, 94vw); background:var(--card); border:1px solid #1f2937; border-radius:20px; padding:26px; box-shadow:0 15px 35px rgba(0,0,0,0.35); }
+      h1{ margin:0 0 14px; font-size:26px; letter-spacing:-0.02em; }
+      p.lead{ margin:0 0 18px; color:var(--muted); line-height:1.5; }
+      .drop{ border:1.5px dashed #334155; border-radius:16px; padding:18px; text-align:center; background:rgba(255,255,255,0.02); transition:border-color 150ms ease, background 150ms ease; }
+      .drop:hover{ border-color:var(--accent); background:rgba(34,211,238,0.05); }
+      input[type=file]{ margin-top:10px; color:var(--text); }
+      .btn{ margin-top:16px; width:100%; padding:12px 14px; border:none; border-radius:12px; background:linear-gradient(120deg, #22d3ee, #38bdf8); color:#0b1224; font-weight:700; font-size:15px; cursor:pointer; transition:transform 120ms ease, box-shadow 120ms ease; }
+      .btn:hover{ transform:translateY(-1px); box-shadow:0 8px 24px rgba(34,211,238,0.35); }
+      .result{ margin-top:16px; padding:12px 14px; border-radius:12px; background:rgba(34,211,238,0.07); border:1px solid rgba(34,211,238,0.35); display:none; }
+      .result strong{ color:var(--accent); }
+      .error{ color:#f87171; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>MNIST Digit Classifier</h1>
+      <p class="lead">Drop a digit image and we will predict its class with the onboard model.</p>
+      <form id="form" class="drop">
+        <div>Choose an image (jpg/png):</div>
+        <input id="file" name="image" type="file" accept="image/*" required />
+        <button class="btn" type="submit">Predict</button>
+      </form>
+      <div id="result" class="result"></div>
+    </div>
+    <script>
+      const form = document.getElementById('form');
+      const fileInput = document.getElementById('file');
+      const result = document.getElementById('result');
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        result.style.display = 'none';
+        const file = fileInput.files[0];
+        if (!file) return;
+        const data = new FormData();
+        data.append('image', file);
+        try {
+          const res = await fetch('/predict_digit', { method: 'POST', body: data });
+          if (!res.ok) throw new Error('Request failed');
+          const json = await res.json();
+          result.innerHTML = `<strong>Predicted:</strong> ${json.result} <br><span>Label: ${json.label} · Confidence: ${(json.confidence * 100).toFixed(1)}%</span>`;
+          result.classList.remove('error');
+        } catch (err) {
+          result.textContent = 'Error: could not get a prediction.';
+          result.classList.add('error');
+        }
+        result.style.display = 'block';
+      });
+    </script>
+  </body>
+</html>
