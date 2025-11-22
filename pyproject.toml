@@ -67,6 +67,7 @@ target-version = ["py311"]
 packages = ["src/mlops_vision_service"]
 include = [
   "src/mlops_vision_service/predict_digit.html",
+  "src/mlops_vision_service/predict_digit_draw.html",
   "src/mlops_vision_service/models/mnist_model.h5",
   "src/mlops_vision_service/models/mnist_mlp.keras",
 ]

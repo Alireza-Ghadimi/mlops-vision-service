@@ -14,7 +14,7 @@ from mlops_vision_service.inference import predict_digit
 UploadFile is sd.UploadFile
 
 app = FastAPI(title="mlops-vision-servic", version="0.1.0")
-PREDICT_PAGE = (Path.Path(__file__).resolve().parent / "predict_digit.html").read_text(
+PREDICT_PAGE = (Path.Path(__file__).resolve().parent / "predict_digit_draw.html").read_text(
     encoding="utf-8"
 )
 
