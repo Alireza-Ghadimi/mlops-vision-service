@@ -53,6 +53,27 @@ async def readyz() -> dict[str, str]:
     return {"status": "ready"}
 
 
+@app.get("/", response_class=HTMLResponse)
+async def index() -> str:
+    return """
+    <!doctype html>
+    <html lang="en">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>mlops-vision-service</title>
+        <style>
+          body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#0f172a;font-family:system-ui,-apple-system,sans-serif;color:#e2e8f0;}
+          a.btn{padding:14px 18px;border-radius:12px;background:linear-gradient(120deg,#22d3ee,#38bdf8);color:#0b1224;font-weight:700;text-decoration:none;box-shadow:0 10px 24px rgba(34,211,238,0.35);}
+        </style>
+      </head>
+      <body>
+        <a class="btn" href="/predict_digit">Go to Digit Predictor</a>
+      </body>
+    </html>
+    """
+
+
 @app.post("/predict-json", response_model=PredictResponse)
 async def predict_json(payload: PredictJSONRequest = Body(...)) -> PredictResponse:
     label = "json_ok" if (payload.data or payload.image_url) else "json_empty"
